@@ -20,4 +20,9 @@ After that run command
 ```bash
 flutter run
 ```
+
+## Licence
+
+GNU GENERAL PUBLIC LICENSE
+                       Version 3, 29 June 2007
  
