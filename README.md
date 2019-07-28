@@ -15,7 +15,7 @@ Open downloaded folder in any text editor or IDE.
 
 Then connect your phone or open your AVD.
 
-After that run command
+After that run command on cmd or git bash or any command line
 
 ```bash
 flutter run
