@@ -21,6 +21,21 @@ After that run command on cmd or git bash or any command line
 flutter run
 ```
 
+## Versions
+
+### 1.0.0
+
+Simple notes application.
+
+Cons:
+You have to reopen app after adding a new note.
+
+### 1.0.1
+
+Resolved bug of version 1.0.0.
+- Added Refresh feature in home page.
+    After adding a new note or editing existing note you can refrash home page to apply changes.
+
 ## Licence
 
 GNU GENERAL PUBLIC LICENSE
