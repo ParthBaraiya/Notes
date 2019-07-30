@@ -3,7 +3,7 @@ import 'package:notes/createNewNote.dart';
 
 import "./appConst.dart";
 
-class NoteData extends StatelessWidget {
+class NoteData extends StatefulWidget {
 
   dynamic item;
   int index;
@@ -12,14 +12,40 @@ class NoteData extends StatelessWidget {
 
   NoteData.addData(this.item,this.index);
 
+  @override
+  _NoteDataState createState() => _NoteDataState();
+
+}
+
+class _NoteDataState extends State<NoteData> {
+
   final globalKey = GlobalKey<ScaffoldState>();
+
+
+  Future<void> _navigateToNewNotes(BuildContext context) async{
+    final f = await Navigator.push(
+      context,
+      new MaterialPageRoute(
+        builder: (context){
+          return new NewNote.setOld(widget.item,widget.index);
+        },
+      )
+    );
+
+    print("f = $f");
+    if(f != null){
+      setState((){
+        widget.item = f[widget.index];
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return new Scaffold(
       key: globalKey,
       appBar: new AppBar(
-        title: new Text(item["title"]),
+        title: new Text(widget.item["title"]),
         actions: <Widget>[
           new Center(
             child: new Padding(
@@ -33,20 +59,7 @@ class NoteData extends StatelessWidget {
                   ),
                 ),
                 onTap: (){
-                  // globalKey.currentState.hideCurrentSnackBar();
-                  // globalKey.currentState.showSnackBar(new SnackBar(
-                  //   content: new Text("Editing..."),
-                  //   duration: DefaultSneakBarDuration,
-                  // ));
-
-                  Navigator.push(
-                    context,
-                    new MaterialPageRoute(
-                      builder: (context){
-                        return new NewNote.setOld(item,index);
-                      },
-                    )
-                  );
+                  _navigateToNewNotes(context).catchError((e) => print(e));
                 },
               ),
             ),
@@ -58,19 +71,32 @@ class NoteData extends StatelessWidget {
           padding: EdgeInsets.all(20.0),
           child: new Column(
             children: <Widget>[
-              new Text(item["note"],
+              new Text(widget.item["note"],
                 style: new TextStyle(
                   color: acknowledgementTextColor,
                   fontSize: 20.0,
                 ),
               ),
               new Padding(padding: EdgeInsets.only(bottom: 70.0),),
-              new Text(
-                "Last Edited On ${item["last_modified"]}",
-                style: new TextStyle(
-                  color: acknowledgementTextColor,
-                  fontSize: 11,
-                ),
+              new Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  new Text(
+                    "Created On ${widget.item["created"]}",
+                    style: new TextStyle(
+                      color: acknowledgementTextColor,
+                      fontSize: 11,
+                    ),
+                  ),
+                  new Padding(padding: EdgeInsets.only(bottom: 7.0),),
+                  new Text(
+                    "Last Edited On ${widget.item["last_modified"]}",
+                    style: new TextStyle(
+                      color: acknowledgementTextColor,
+                      fontSize: 11,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),

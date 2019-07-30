@@ -8,12 +8,13 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
-// import 'package:notes/bodyNotes.dart';
-import 'package:notes/main.dart';
+// import 'package:notes/bodyNotes.dart;
 
 //App Packages
 // import "./appConst.dart";
 import "./jsonFetch.dart";
+
+
 
 class NewNote extends StatefulWidget {
 
@@ -51,7 +52,7 @@ class _NewNoteState extends State<NewNote> {
 
   }
 
-  Future<bool> _saveData({BuildContext context}) async{
+  Future<String> _saveData({BuildContext context}) async{
     GetFilesAndFolder faf = new GetFilesAndFolder();
 
     File f = await faf.localfile;
@@ -80,7 +81,7 @@ class _NewNoteState extends State<NewNote> {
         stored[widget.index]["last_modified"] = date.day.toString()+"-"+date.month.toString()+"-"+date.year.toString();
     } else {
       dynamic list = {
-        "id": stored.length,
+        "id": "${(stored.length == 0)? 1:int.parse(stored[stored.length-1]["id"])+1}",
         "title": titleController.text,
         "note": notesController.text,
         "last_modified": date.day.toString()+"-"+date.month.toString()+"-"+date.year.toString(),
@@ -91,16 +92,7 @@ class _NewNoteState extends State<NewNote> {
 
     f = await f.writeAsString(jsonEncode(stored));
 
-    Navigator.push(
-      context,
-      new MaterialPageRoute(
-        builder: (context){
-          return new NotesData();
-        },
-      )
-    );
-
-    return true;
+    return s;
 
   } 
 
@@ -187,8 +179,14 @@ class _NewNoteState extends State<NewNote> {
                     // keyGlobal.currentState.showSnackBar(new SnackBar(
                     //   content: new Text("Data Saved"),
                     // ));
-              
-                    _saveData(context: context).then((bool d) => print("Saved")).catchError((e)=>print(e));
+                    if(titleController.text != ""){
+                      if(notesController.text != ""){
+                        _saveData(context: context).then((String stored) { 
+                          print("Saved");
+                          Navigator.pop(context,"done");
+                        }).catchError((e)=>print(e));
+                      }
+                    }
                   },
                 ),
               ),

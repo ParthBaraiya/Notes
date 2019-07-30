@@ -12,6 +12,8 @@ import "./noteData.dart";
 import 'jsonFetch.dart';
 
 class BodyNotes extends StatefulWidget {
+  // BuildContext context;
+  // BodyNotes(this.context);
   @override
   _BodyNotesState createState() => _BodyNotesState();
 }
@@ -42,75 +44,138 @@ class _BodyNotesState extends State<BodyNotes> {
     });
   }
 
+
+
   Future<String> getDataFromJSON() async{
     File f = await faf.localfile;
     String data = await f.readAsString();
     return data;
   }
 
-  Future<void> _addItem({dynamic item,int index}) async {
+  Future<List> _addItem({dynamic item,int index}) async {
 
     File f = await faf.localfile;
-    notesList.insert(index,item);
-    f = await f.writeAsString(jsonEncode(notesList));
-    
-    setState(() {});
+    List l = notesList;
+    l.insert(index, item);
+    f = await f.writeAsString(jsonEncode(l));
+    return l;
+  }
+
+  Future<List> _removeItem(int index) async {
+
+    File f = await faf.localfile;
+    List l = notesList;
+    l.removeAt(index);
+    f = await f.writeAsString(jsonEncode(l));
+    return l;
+
+  }
+
+  Future<void> _navigateToNoteData(int index,BuildContext context) async{
+    final s = await Navigator.push(
+      context,
+      new MaterialPageRoute(
+        builder: (context)=> new NoteData.addData(notesList[index],index),
+      )
+    );
+
+    print(s);
+
+    // if()
+    setState(() {
+      notesList = s;
+    });
+  }
   
+  void _noteDismiss(int index,BuildContext context){
+    var item = notesList[index];
+    print("index= $index");
+    _removeItem(index).then((List l){
+      print(l);
+      setState(() {
+        notesList = l;
+      });
+      Scaffold.of(context).hideCurrentSnackBar();
+      Scaffold.of(context).showSnackBar(SnackBar(
+        content: new Text(
+          "Note Removed",
+          style: new TextStyle(
+            color: defaultSnackBarColor,
+          ),
+        ),
+        duration: DefaultSneakBarDuration,
+        action: SnackBarAction(
+          label: "UNDO",
+          onPressed: (){
+              _addItem(
+                index: index,
+                item: item
+              ).then((List l){
+                setState(() {
+                  notesList = l;
+                });
+              }).catchError((e)=>print(e));
+          },
+        ),
+      ));
+    }).catchError((e)=>print(e));
   }
-
-  Future<void> _removeItem(int index) async {
-
-    File f = await faf.localfile;
-
-    notesList.removeAt(index);
-    
-    f = await f.writeAsString(jsonEncode(notesList));
-    
-    setState(() {});
-
-  }
-
-  void showLabel(String event,int index,{BuildContext context,}){
+  
+  Future<void> showLabel(String event,int index,{BuildContext context,}) async{
     if(event == "tapped"){
       // Scaffold.of(subContext).showSnackBar(SnackBar(
       //   content: new Text("Item ${index+1} tapped."),
       //   duration: DefaultSneakBarDuration,
       // ));
-      Navigator.push(
-        context,
-        new MaterialPageRoute(
-          builder: (context)=> new NoteData.addData(notesList[index],index),
-        )
-      );
+      
     } else if (event == "dismissed") {
-      var item = notesList[index];
-      _removeItem(index).then((a){
-        Scaffold.of(context).hideCurrentSnackBar();
-        Scaffold.of(context).showSnackBar(SnackBar(
-          content: new Text(
-            "Note Removed",
-            style: new TextStyle(
-              color: defaultSnackBarColor,
-            ),
-          ),
-          duration: DefaultSneakBarDuration,
-          action: SnackBarAction(
-            label: "UNDO",
-            onPressed: (){
-                _addItem(
-                  index: index,
-                  item: item
-                ).catchError((e)=>print(e));
-            },
-          ),
-        ));
-      }).catchError((e)=>print(e));
+      
     }
+  }
+
+  _navigateToNewNote(BuildContext context) async{
+    
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => NewNote()),
+    );
+
+    // return notesList;
+
+    // Scaffold.of(widget.context)
+    //   ..hideCurrentSnackBar()
+    //   ..showSnackBar(new SnackBar(
+    //     content: Text("Saved")
+    //   ));
+
+    // print("f = $f");
+
+
+    // return list;
+
+  }
+
+  Future<void> _refreshNotes() async {
+
+    await Future.delayed(Duration(seconds: 2));
+
+    getDataFromJSON().then( (String data) {
+      print(data);
+      setState( () {
+        print("Data: ");
+        print(data.length);
+        if (data.length > 0){
+          notesList = jsonDecode(data);
+        }
+      });
+    }).catchError((e){
+      print(e);
+    });
   }
 
   Widget notesTemplete(BuildContext context,int index){
     return new Dismissible(
-      key: new Key(index.toString()),
+      key: new Key(notesList[index]["id"]),
       background: new Container(
           alignment: Alignment.centerRight,
           padding: EdgeInsets.only(right: 20.0),
@@ -129,7 +194,7 @@ class _BodyNotesState extends State<BodyNotes> {
                 new Container(
                   padding: EdgeInsets.all(15.0),
                   child: new CircleAvatar(
-                    child: new Text("${notesList[index]["title"][0]}".toUpperCase(),style: new TextStyle(color: Colors.white)),
+                    child: new Text("${notesList[index]["title"]==""? "N":notesList[index]["title"][0]}".toUpperCase(),style: new TextStyle(color: Colors.white)),
                     backgroundColor: Colors.green,
                   ),
                 ),
@@ -141,13 +206,13 @@ class _BodyNotesState extends State<BodyNotes> {
                       children: <Widget>[
                         new Text("${notesList[index]["title"]}",
                           style: new TextStyle(
-                            decoration: TextDecoration.underline,
-                            fontSize: 15,
+                            // decoration: TextDecoration.underline,
+                            fontSize: 17
                           ),
                         ),
                         new Padding(padding: EdgeInsets.only(top: 7.0),),
                         new Text("${notesList[index]["note"]}",
-                          overflow: TextOverflow.clip,
+                          // overflow: TextOverflow.fade,
                           style: new TextStyle(
                             color: Color.fromRGBO(44, 44, 44, 0.6),
                             fontSize: 12,
@@ -155,7 +220,7 @@ class _BodyNotesState extends State<BodyNotes> {
                         ),
                       ],
                     ),
-                    onTap: () => showLabel("tapped", index, context: context),
+                    onTap: () => _navigateToNoteData(index,context).catchError((e) => print(e)),
                   ),
                 ),
               ],
@@ -164,15 +229,18 @@ class _BodyNotesState extends State<BodyNotes> {
         ]
       ),
       onDismissed: (direction){
-        showLabel("dismissed", index,context: context);
+        _noteDismiss(index,context);
       },
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    // List l = new List.generate(notesList.length, (int index){return index;});
+
     if(notesList.length > 0){
-      return new Container(
+      return new RefreshIndicator(
+        onRefresh: _refreshNotes,
         child: new ListView.builder(
           itemCount: notesList.length,
           itemBuilder: (context,int index){
@@ -209,12 +277,14 @@ class _BodyNotesState extends State<BodyNotes> {
                   color: Colors.white,
                   iconSize: 30.0,
                   onPressed: (){
-                    Navigator.push(
-                      context,
-                      new MaterialPageRoute(
-                        builder: (BuildContext context) => new NewNote(),
-                      )
-                    );
+                    _navigateToNewNote(context);
+                    // then((List l){
+                    //   if(l != null){
+                    //     setState(() {
+                    //       notesList = l; 
+                    //     });
+                    //   }
+                    // }).catchError((e) => print(e));
                   },
                 ),
                 backgroundColor: Colors.green,
