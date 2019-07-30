@@ -38,6 +38,5 @@ Resolved bug of version 1.0.0.
 
 ## Licence
 
-GNU GENERAL PUBLIC LICENSE
-                       Version 3, 29 June 2007
+GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
  

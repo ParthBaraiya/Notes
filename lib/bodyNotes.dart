@@ -237,7 +237,8 @@ class _BodyNotesState extends State<BodyNotes> {
         ),
       );
     } else {
-      return new Container(
+      return new RefreshIndicator(
+        onRefresh: _refreshNotes,
         child: new Center(
           child: new Column(
             mainAxisAlignment: MainAxisAlignment.center,
