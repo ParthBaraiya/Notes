@@ -120,18 +120,6 @@ class _BodyNotesState extends State<BodyNotes> {
       ));
     }).catchError((e)=>print(e));
   }
-  
-  Future<void> showLabel(String event,int index,{BuildContext context,}) async{
-    if(event == "tapped"){
-      // Scaffold.of(subContext).showSnackBar(SnackBar(
-      //   content: new Text("Item ${index+1} tapped."),
-      //   duration: DefaultSneakBarDuration,
-      // ));
-      
-    } else if (event == "dismissed") {
-      
-    }
-  }
 
   _navigateToNewNote(BuildContext context) async{
     
