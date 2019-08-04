@@ -208,13 +208,15 @@ class _CreateNoteState extends State<CreateNote> {
                         ..showSnackBar(SnackBar(
                           content: new Text("Please Enter Note"),
                         ));
+                        notesNode.requestFocus();
                       }
                     } else {
-                        keyGlobal.currentState
-                        ..hideCurrentSnackBar()
-                        ..showSnackBar(SnackBar(
-                          content: new Text("Please Enter Title"),
-                        ));
+                      keyGlobal.currentState
+                      ..hideCurrentSnackBar()
+                      ..showSnackBar(SnackBar(
+                        content: new Text("Please Enter Title"),
+                      ));
+                      titleNode.requestFocus();
                     }
                   },
                 ),
