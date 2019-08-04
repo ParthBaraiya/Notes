@@ -8,9 +8,9 @@ import 'package:flutter/material.dart';
 const DefaultSneakBarDuration = const Duration(seconds: 2);
 
 //Color Constants
-Color acknowledgementTextColor = new Color.fromRGBO(44, 44, 44, 0.6);
-Color defaultIconColor = new Color.fromRGBO(14, 14, 14, 1);
-Color defaultSnackBarColor = new Color.fromRGBO(255, 255, 255, 1);
+Color acknowledgementTextColor = Color.fromRGBO(44, 44, 44, 0.6);
+Color defaultIconColor = Color.fromRGBO(14, 14, 14, 1);
+Color defaultSnackBarColor = Color.fromRGBO(255, 255, 255, 1);
 
 //Directory Constants
 Directory directory;
