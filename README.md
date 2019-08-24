@@ -1,13 +1,13 @@
 # Notes
 This project is a basic application which will save your daily notes.
 
-##Install Flutter
+## Install Flutter
 
 To install flutter sdk go to: [Flutter](https://flutter.dev/docs/get-started/install/windows)
 
 After installing flutter,
 
-#### How to run.
+## How to run.
 
 Clone or download this repository. run following command to do so.
 ```bash
