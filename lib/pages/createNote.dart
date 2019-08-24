@@ -107,48 +107,53 @@ class _CreateNoteState extends State<CreateNote> {
     titleController.text = (widget.isOld == false)? "" : widget.item["title"];
     notesController.text = (widget.isOld == false)? "" : widget.item["note"];
 
-    return Container(
-      padding: EdgeInsets.all(10.0),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: <Widget>[
-          TextField(
-            keyboardType: TextInputType.text,
-            focusNode: titleNode,
-            autofocus: true,
-            controller: titleController,
-            maxLength: 50,
-            minLines: 1,
-            readOnly: false,
-            decoration: InputDecoration(
-              hintText: "title",
-              contentPadding: EdgeInsets.all(10.0),
-              disabledBorder: InputBorder.none,
-              errorBorder: InputBorder.none,
-            ),
+    return ListView.builder(
+      itemCount: 1,
+      itemBuilder: (context,index){
+        return Container(
+          padding: EdgeInsets.all(10.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: <Widget>[
+              TextField(
+                keyboardType: TextInputType.text,
+                focusNode: titleNode,
+                autofocus: true,
+                controller: titleController,
+                maxLength: 50,
+                minLines: 1,
+                readOnly: false,
+                decoration: InputDecoration(
+                  hintText: "title",
+                  contentPadding: EdgeInsets.all(10.0),
+                  disabledBorder: InputBorder.none,
+                  errorBorder: InputBorder.none,
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 20.0)
+              ),
+              TextField(
+                controller: notesController,
+                focusNode: notesNode,
+                keyboardType: TextInputType.multiline,
+                minLines: 1,
+                maxLines: 50,
+                readOnly: false,
+                decoration: InputDecoration(
+                  hintText: "Enter notes here...",
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.all(10.0),
+                  disabledBorder: InputBorder.none,
+                  enabledBorder: InputBorder.none,
+                  errorBorder: InputBorder.none,
+                ),
+              ),
+            ],
           ),
-          Padding(
-            padding: const EdgeInsets.only(bottom: 20.0)
-          ),
-          TextField(
-            controller: notesController,
-            focusNode: notesNode,
-            keyboardType: TextInputType.multiline,
-            minLines: 1,
-            maxLines: 50,
-            readOnly: false,
-            decoration: InputDecoration(
-              hintText: "Enter notes here...",
-              border: InputBorder.none,
-              contentPadding: EdgeInsets.all(10.0),
-              disabledBorder: InputBorder.none,
-              enabledBorder: InputBorder.none,
-              errorBorder: InputBorder.none,
-            ),
-          ),
-        ],
-      ),
+        );
+      }
     );
   }
 
@@ -206,17 +211,15 @@ class _CreateNoteState extends State<CreateNote> {
                         keyGlobal.currentState
                         ..hideCurrentSnackBar()
                         ..showSnackBar(SnackBar(
-                          content: new Text("Please Enter Note"),
+                          content: Text("Please Enter Note"),
                         ));
-                        notesNode.requestFocus();
                       }
                     } else {
-                      keyGlobal.currentState
-                      ..hideCurrentSnackBar()
-                      ..showSnackBar(SnackBar(
-                        content: new Text("Please Enter Title"),
-                      ));
-                      titleNode.requestFocus();
+                        keyGlobal.currentState
+                        ..hideCurrentSnackBar()
+                        ..showSnackBar(SnackBar(
+                          content: Text("Please Enter Title"),
+                        ));
                     }
                   },
                 ),
@@ -235,7 +238,3 @@ class _CreateNoteState extends State<CreateNote> {
     );
   }
 }
-
-// class NewNoteMethod{
-
-// }

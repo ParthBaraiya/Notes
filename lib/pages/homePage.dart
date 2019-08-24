@@ -204,14 +204,14 @@ class _HomePageState extends State<HomePage> {
         children: <Widget>[
           SizedBox(height: 4.0,),
           Container(
-            decoration: new BoxDecoration(
-              borderRadius: BorderRadius.all(const Radius.circular(10.0)),
-              color: Colors.white, 
-              boxShadow: [BoxShadow(
-                color: Colors.grey,
-                blurRadius: 5.0,
-              ),],
-            ),
+            // decoration: BoxDecoration(
+            //   borderRadius: BorderRadius.all(const Radius.circular(15.0)),
+            //   color: Colors.white, 
+            //   boxShadow: [BoxShadow(
+            //     color: Colors.grey,
+            //     blurRadius: 2.0,
+            //   ),],
+            // ),
             child: Padding(
               padding: EdgeInsets.all(10.0),
               child: InkWell(
@@ -269,6 +269,7 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           SizedBox(height: 4.0,),
+          Divider(),
         ],
       ),
       onDismissed: (direction){

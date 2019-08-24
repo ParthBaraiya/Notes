@@ -71,42 +71,47 @@ class _ShowDataState extends State<ShowData> {
             ),
           ],
         ),
-        body: Container(
-          child: Padding(
-            padding: EdgeInsets.all(20.0),
-            child: Column(
-              children: <Widget>[
-                Text(widget.item["note"],
-                  style: TextStyle(
-                    color: acknowledgementTextColor,
-                    fontSize: 20.0,
-                  ),
-                ),
-                Padding(padding: EdgeInsets.only(bottom: 70.0),),
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
+        body: ListView.builder(
+          itemCount: 1,
+          itemBuilder: (context,index){
+            return Container(
+              child: Padding(
+                padding: EdgeInsets.all(20.0),
+                child: Column(
                   children: <Widget>[
-                    Text(
-                      "Created On ${widget.item["created"]}",
+                    Text(widget.item["note"],
                       style: TextStyle(
                         color: acknowledgementTextColor,
-                        fontSize: 11,
+                        fontSize: 20.0,
                       ),
                     ),
-                    Padding(padding: EdgeInsets.only(bottom: 7.0),),
-                    Text(
-                      "Last Edited On ${widget.item["last_modified"]}",
-                      style: TextStyle(
-                        color: acknowledgementTextColor,
-                        fontSize: 11,
-                      ),
+                    Padding(padding: EdgeInsets.only(bottom: 70.0),),
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
+                        Text(
+                          "Created On ${widget.item["created"]}",
+                          style: TextStyle(
+                            color: acknowledgementTextColor,
+                            fontSize: 11,
+                          ),
+                        ),
+                        Padding(padding: EdgeInsets.only(bottom: 7.0),),
+                        Text(
+                          "Last Edited On ${widget.item["last_modified"]}",
+                          style: TextStyle(
+                            color: acknowledgementTextColor,
+                            fontSize: 11,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              ],
-            ),
-          )
-        )
+              )
+            );
+          },
+        ),
       ),
       onWillPop: () async {
         Navigator.pop(context,true);
