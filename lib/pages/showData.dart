@@ -4,18 +4,11 @@ import 'package:flutter/material.dart';
 //App Packages
 import './createNote.dart';
 import "../globals/constants.dart";
+import '../globals/notesData.dart';
 
 class ShowData extends StatefulWidget {
 
-  dynamic item;
-  int index;
-
   ShowData();
-
-  ShowData.addData({@required dynamic item,int index}){
-    this.item = item;
-    this.index = index;
-  }
 
   @override
   _ShowDataState createState() => _ShowDataState();
@@ -28,14 +21,15 @@ class _ShowDataState extends State<ShowData> {
 
 
   Future<void> _navigateToCreateNote(BuildContext context) async{
+    OldEditAcknowledgement.setTrue();
     await Navigator.pushReplacement(
       context,
       MaterialPageRoute(
-        builder: (context){
-          return CreateNote.setData(widget.item,widget.index);
-        },
+        builder: (context) => CreateNote(),
       )
     );
+    OldEditAcknowledgement.setFalse();
+    setState(() {});
   }
 
   @override
@@ -44,7 +38,8 @@ class _ShowDataState extends State<ShowData> {
       child: Scaffold(
         key: globalKey,
         appBar: AppBar(
-          title: Text(widget.item["title"]),
+          backgroundColor: PredColor[int.parse(CurrentNote.color)],
+          title: Text(CurrentNote.title),
           leading: IconButton(
             icon: Icon(Icons.arrow_back),
             onPressed: (){
@@ -79,7 +74,7 @@ class _ShowDataState extends State<ShowData> {
                 padding: EdgeInsets.all(20.0),
                 child: Column(
                   children: <Widget>[
-                    Text(widget.item["note"],
+                    Text(CurrentNote.note,
                       style: TextStyle(
                         color: acknowledgementTextColor,
                         fontSize: 20.0,
@@ -90,7 +85,7 @@ class _ShowDataState extends State<ShowData> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: <Widget>[
                         Text(
-                          "Created On ${widget.item["created"]}",
+                          "Created On ${CurrentNote.created}",
                           style: TextStyle(
                             color: acknowledgementTextColor,
                             fontSize: 11,
@@ -98,7 +93,7 @@ class _ShowDataState extends State<ShowData> {
                         ),
                         Padding(padding: EdgeInsets.only(bottom: 7.0),),
                         Text(
-                          "Last Edited On ${widget.item["last_modified"]}",
+                          "Last Edited On ${CurrentNote.lastModified}",
                           style: TextStyle(
                             color: acknowledgementTextColor,
                             fontSize: 11,

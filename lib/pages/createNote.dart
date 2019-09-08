@@ -1,29 +1,19 @@
 //Dart Packages
-import 'dart:convert';
-import 'dart:io';
 
 //Flutter Packages
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
+import 'package:notes/globals/constants.dart';
+import 'package:notes/globals/notesData.dart';
 import 'package:notes/pages/showData.dart';
 
 //App Packages
-import "../globals/jsonFetch.dart";
+import '../globals/notesData.dart';
 
 
 
 class CreateNote extends StatefulWidget {
-
-  dynamic item;
-  bool isOld = false;
-  int index;
-
-  CreateNote();
-
-  CreateNote.setData(this.item,this.index){
-    isOld = true;
-  }
 
   @override
   _CreateNoteState createState() => _CreateNoteState();
@@ -37,7 +27,16 @@ class _CreateNoteState extends State<CreateNote> {
   final titleNode = FocusNode();
   final notesNode = FocusNode();
 
-  dynamic newItem;
+  int selectedColor = 0;
+
+  @override
+  void initState(){
+    super.initState();
+
+    titleController.text = (!(OldEditAcknowledgement.getAck()))? "" : CurrentNote.title;
+    notesController.text = (!(OldEditAcknowledgement.getAck()))? "" : CurrentNote.note;
+    selectedColor = (OldEditAcknowledgement.getAck() == true)?int.parse(CurrentNote.color):0;
+  }
 
   @override
   void dispose(){
@@ -52,60 +51,42 @@ class _CreateNoteState extends State<CreateNote> {
   }
 
   Future<List> _saveData({BuildContext context}) async{
-    File f = await JSONFetch.localfile;
-    
-    String s = await f.readAsString().catchError((e){
-      return "false";
-    });
-
-    if(s == "false"){
-      return [false];
-    }
-
-    dynamic stored = [];
-    
-    if(s.length > 2){
-      stored = jsonDecode(s);
-    }
 
     var date = DateTime.now();
     int index;
     
-    if(widget.isOld == true){
+    if(OldEditAcknowledgement.getAck()){
       print("Is Old");
-      stored[widget.index]["title"] = titleController.text;
-      stored[widget.index]["note"] = notesController.text;
-      stored[widget.index]["last_modified"] = date.day.toString()+"-"+date.month.toString()+"-"+date.year.toString();  
-      newItem = stored[widget.index];
-      index = widget.index;
+      NotesList.changeBlock(CurrentNote.index, "title", titleController.text);
+      NotesList.changeBlock(CurrentNote.index,"note",notesController.text);
+      NotesList.changeBlock(CurrentNote.index, "last_modified",date.day.toString()+"-"+date.month.toString()+"-"+date.year.toString());  
+      NotesList.changeBlock(CurrentNote.index, "color", "$selectedColor");
+      index = CurrentNote.index;
+      CurrentNote.setNote(NotesList.getNoteAt(index), index);
     } else {
-      newItem = {
-        "id": "${(stored.length == 0)? 1:int.parse(stored[stored.length-1]["id"])+1}",
+      dynamic newItem = {
+        "id": "${(NotesList.getLength() == 0)? 1:int.parse(NotesList.getNoteAt(0)["id"])+1}",
         "title": titleController.text,
         "note": notesController.text,
         "last_modified": date.day.toString()+"-"+date.month.toString()+"-"+date.year.toString(),
         "created": date.day.toString()+"-"+date.month.toString()+"-"+date.year.toString(),
+        "color": "$selectedColor"
       };
-      stored.add(newItem);
-      index = stored.length -1;
+      NotesList.addNote(0, newItem);
+      CurrentNote.setNote(newItem, 0);
     }
     
-    f = await f.writeAsString(jsonEncode(stored)).catchError((e){
-      return null;
+    bool ack;
+
+    await NotesList.saveList().then((bool b){
+      ack = b;
     });
     
-    if(f != null){
-      return [true,newItem,index];
-    } else {
-      return [false];
-    }
+    return [ack,index];
 
   } 
 
   Widget _bodyWidget(BuildContext context) {
-
-    titleController.text = (widget.isOld == false)? "" : widget.item["title"];
-    notesController.text = (widget.isOld == false)? "" : widget.item["note"];
 
     return ListView.builder(
       itemCount: 1,
@@ -118,12 +99,16 @@ class _CreateNoteState extends State<CreateNote> {
             children: <Widget>[
               TextField(
                 keyboardType: TextInputType.text,
+                enableInteractiveSelection: true,
                 focusNode: titleNode,
-                autofocus: true,
+                // autofocus: true,
                 controller: titleController,
                 maxLength: 50,
                 minLines: 1,
                 readOnly: false,
+                onChanged: (String s){
+                  CurrentNote.title = s;
+                },
                 decoration: InputDecoration(
                   hintText: "title",
                   contentPadding: EdgeInsets.all(10.0),
@@ -136,11 +121,16 @@ class _CreateNoteState extends State<CreateNote> {
               ),
               TextField(
                 controller: notesController,
+                
                 focusNode: notesNode,
                 keyboardType: TextInputType.multiline,
                 minLines: 1,
                 maxLines: 50,
                 readOnly: false,
+
+                onChanged: (String s){
+                  CurrentNote.note = s;
+                },
                 decoration: InputDecoration(
                   hintText: "Enter notes here...",
                   border: InputBorder.none,
@@ -165,14 +155,16 @@ class _CreateNoteState extends State<CreateNote> {
       child: Scaffold(
         key: keyGlobal,
         appBar: AppBar(
+          backgroundColor: PredColor[selectedColor],
           leading: IconButton(
             icon: Icon(Icons.arrow_back),
             onPressed: () {
+              OldEditAcknowledgement.setFalse();
               Navigator.pop(context,false);
             },
           ),
           title: Text(
-            widget.isOld == true? "Edit Note":"Create Note",
+            (OldEditAcknowledgement.getAck())? "Edit Note":"Create Note",
             textAlign: TextAlign.center,
           ),
           actions: <Widget>[
@@ -194,18 +186,14 @@ class _CreateNoteState extends State<CreateNote> {
                     if(titleController.text != ""){
                       if(notesController.text != ""){
                         _saveData(context: context).then((List saved) { 
-                          
                           print("Saved");
+                          OldEditAcknowledgement.setFalse();
                           Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(
-                              builder: (BuildContext context) => ShowData.addData(
-                                item: saved[1],
-                                index: saved[2]
-                              ),
+                              builder: (BuildContext context) => ShowData(),
                             ),
                           );
-
                         }).catchError((e)=>print(e));
                       } else {
                         keyGlobal.currentState
@@ -215,11 +203,11 @@ class _CreateNoteState extends State<CreateNote> {
                         ));
                       }
                     } else {
-                        keyGlobal.currentState
-                        ..hideCurrentSnackBar()
-                        ..showSnackBar(SnackBar(
-                          content: Text("Please Enter Title"),
-                        ));
+                      keyGlobal.currentState
+                      ..hideCurrentSnackBar()
+                      ..showSnackBar(SnackBar(
+                        content: Text("Please Enter Title"),
+                      ));
                     }
                   },
                 ),
@@ -229,12 +217,36 @@ class _CreateNoteState extends State<CreateNote> {
         ],
         ),
         body: _bodyWidget(context),
+        bottomNavigationBar: BottomNavigationBar(
+          items: _colorBar(context),
+          currentIndex: selectedColor,
+          type: BottomNavigationBarType.shifting,
+          onTap: (int index){
+            setState(() {
+              selectedColor = index;              
+            });
+          },
+        ),
       ),
       onWillPop: () async {
-        Navigator.pop(context,false);
-        
+        // print("poped");
+        Navigator.pop(context,false); 
         return false;
       },
     );
+  }
+  List<BottomNavigationBarItem> _colorBar(BuildContext context){
+    List<BottomNavigationBarItem> l = [];
+    for(int i=0;i<PredColor.length;i++){
+      l.add(BottomNavigationBarItem(
+        icon: Icon(
+          Icons.check_circle,
+            color: PredColor[i],
+            size: 30.0,
+          ),
+        title: Text(""),
+      ));
+    }
+    return l;
   }
 }

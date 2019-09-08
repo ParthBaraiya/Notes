@@ -1,9 +1,8 @@
 //Dart packages
-import 'dart:io';
-import "dart:convert";
 
 //Flutter Packages
 import "package:flutter/material.dart";
+import 'package:notes/globals/notesData.dart';
 
 //App Packages
 import "../globals/constants.dart";
@@ -21,20 +20,21 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
 
-  dynamic notesList = [];
-
   @override
-  void initState(){
+  void initState() {
     super.initState();
 
-    JSONFetch.getDataFromJSON().then( (List data) {
-      print("Data: $data");
-      setState( (){
-        print("Data-length: ${data.length}");
-        if (data.length > 0){
-          notesList = data;
+    JSONFetch.getDataFromJSON().then( (List data) async {
+      if (data.length > 0){
+        NotesList.setList(data);
+        if(NotesList.getNoteAt(0).length == 5){
+          for (int i=0;i<NotesList.getLength();i++) {
+            NotesList.changeBlock(i, "color", "0");
+          }
+          await NotesList.saveList();
         }
-      });
+      }
+      setState((){});
     }).catchError((e){
       print(e);
     });
@@ -42,67 +42,34 @@ class _HomePageState extends State<HomePage> {
 
   Future<bool> _addItem({dynamic item,int index}) async {
 
-    File f = await JSONFetch.localfile;
-    notesList.insert(index, item);
-    f = await f.writeAsString(jsonEncode(notesList)).catchError((e){
-      return null;
-    });
-    if(f == null){
-      return false;
-    } else {
-      return true;
-    }
+    NotesList.addNote(index, item);
+    return NotesList.saveList();
   }
 
   Future<bool> _removeItem(int index) async {
 
-    File f = await JSONFetch.localfile;
-    notesList.removeAt(index);
-    f = await f.writeAsString(jsonEncode(notesList)).catchError((e){
-      return null;
-    });
-    if(f == null){
-      return false;
-    } else {
-      return true;
-    }
-
+    NotesList.removeNote(index);
+    return NotesList.saveList();
   }
 
   Future<void> _navigateToShowData(int index,BuildContext context) async{
-    final result = await Navigator.push(
+    CurrentNote.setNote(NotesList.getNoteAt(index), index);
+    await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context)=> ShowData.addData(
-          item: notesList[index],
-          index: index,
-        ),
+        builder: (context)=> ShowData(),
       )
     );
-
-    print("NoteData-Result: $result");
-
-
-    JSONFetch.getDataFromJSON().then( (List data) {
-      print("Data: $data");
-      print("Data-length: ${data.length}");
-      setState( (){
-        if (data.length > 0){
-          notesList = data;
-        }
-      });
-    }).catchError((e){
-      print(e);
-    });
+    setState((){});
   }
   
   void _noteDismiss(int index,BuildContext context){
-    var item = notesList[index];
+    var item = NotesList.getNoteAt(index);
 
     print("index= $index");
 
     _removeItem(index).then((bool saved){
-      print(saved);
+      // print(saved);
       if (saved == true){
         setState(() {});
         Scaffold.of(context)
@@ -145,51 +112,24 @@ class _HomePageState extends State<HomePage> {
     }).catchError((e) => print(e));
   }
 
-  Future<void> _refreshNotes() async {
-
-    await Future.delayed(Duration(seconds: 2));
-
-    JSONFetch.getDataFromJSON().then( (List data) {
-      print("FileData: $data");
-      setState( (){
-        print("Data: ${data.length}");
-        if (data.length > 0){
-          notesList = data;
-        }
-      });
-    }).catchError((e){
-      print(e);
-    });
-  }
-
   _navigateToCreateNote(BuildContext context) async{
     
-    final result = await Navigator.push(
+    await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => CreateNote()
       ),
     );
-
-    print("NewNote-Result: $result");
-
-    JSONFetch.getDataFromJSON().then( (List data) {
-      print("Data: $data");
-      setState( (){
-        print("Data-length: ${data.length}");
-        if (data.length > 0){
-          notesList = data;
-        }
-      });
-    }).catchError((e){
-      print(e);
-    });
+    OldEditAcknowledgement.setFalse();
+    setState( (){});
   }
 
   // Sample template of a single note which is used to create a list of notes
   Widget notesTemplete(BuildContext context,int index){
+    Map currentNote = NotesList.getNoteAt(index);
+
     return Dismissible(
-      key: Key(notesList[index]["id"]), 
+      key: Key(currentNote["id"]), 
       background: Container(
         alignment: Alignment.centerRight,
         padding: EdgeInsets.only(right: 20.0),
@@ -199,99 +139,91 @@ class _HomePageState extends State<HomePage> {
           color: Colors.white,
         ),
       ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          SizedBox(height: 4.0,),
-          Container(
-            // decoration: BoxDecoration(
-            //   borderRadius: BorderRadius.all(const Radius.circular(15.0)),
-            //   color: Colors.white, 
-            //   boxShadow: [BoxShadow(
-            //     color: Colors.grey,
-            //     blurRadius: 2.0,
-            //   ),],
-            // ),
-            child: Padding(
-              padding: EdgeInsets.all(10.0),
-              child: InkWell(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: <Widget>[
-                    Container(
-                      padding: EdgeInsets.all(15.0),
-                      child: CircleAvatar(
-                        child: Text(
-                          "${notesList[index]["title"]==""? "0":notesList[index]["title"][0]}".toUpperCase(),
-                          style: TextStyle(
-                            color: Colors.white,
+      child: Container(
+        color: PredColor[int.parse(currentNote["color"])],
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            // SizedBox(height: 4.0,),
+            Container(
+              child: Padding(
+                padding: EdgeInsets.all(10.0),
+                child: InkWell(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: <Widget>[
+                      Container(
+                        padding: EdgeInsets.all(15.0),
+                        child: CircleAvatar(
+                          child: Text(
+                            "${currentNote["title"]==""? "0":currentNote["title"][0]}".toUpperCase(),
+                            style: TextStyle(
+                              color: Colors.white,
+                            ),
                           ),
+                          backgroundColor: Colors.green,
                         ),
-                        backgroundColor: Colors.green,
                       ),
-                    ),
-                    Expanded(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          Text(
-                            "${notesList[index]["title"]}",
-                            softWrap: false,
-                            maxLines: 1,
-                            overflow: TextOverflow.fade,
-                            style: TextStyle(
-                              fontSize: 17,
-                              fontWeight: FontWeight.bold,
+                      Expanded(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Text(
+                              "${currentNote["title"]}",
+                              softWrap: false,
+                              maxLines: 1,
+                              overflow: TextOverflow.fade,
+                              style: TextStyle(
+                                fontSize: 17,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
-                          ),
-                          Padding(padding: EdgeInsets.only(top: 7.0),),
-                          Text(
-                            "${notesList[index]["note"]}",
-                            overflow: TextOverflow.fade,
-                            softWrap: false,
-                            maxLines: 1,
-                            style: TextStyle(
-                              color: acknowledgementTextColor,
-                              fontSize: 12,
+                            Padding(padding: EdgeInsets.only(top: 7.0),),
+                            Text(
+                              "${currentNote["note"]}",
+                              overflow: TextOverflow.fade,
+                              softWrap: false,
+                              maxLines: 1,
+                              style: TextStyle(
+                                color: acknowledgementTextColor,
+                                fontSize: 12,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
+                  onTap: () {
+                    _navigateToShowData(index,context).catchError((e) => print(e));
+                  },
                 ),
-                onTap: () {
-                  // print("Tapped");
-                  _navigateToShowData(index,context).catchError((e) => print(e));
-                },
               ),
             ),
-          ),
-          SizedBox(height: 4.0,),
-          Divider(),
-        ],
+            // SizedBox(height: 2.0,),
+            Divider(),
+          ],
+        ),
       ),
-      onDismissed: (direction){
+    onDismissed: (direction){
         _noteDismiss(index,context);
       },
     );
   }
 
-  // Wrap data into RefreshIndicator
   Widget _notesData(BuildContext context) {
-
-    Widget w;
-
-    if(notesList.length > 0){
-      w = ListView.builder(
-          itemCount: notesList.length,
+    
+    if(NotesList.getLength() > 0){
+      return ListView.builder(
+          itemCount: NotesList.getLength(),
+          // reverse: true,
           itemBuilder: (context,int index){
             return notesTemplete(context, index);
           },
         );
     } else {
-      w = ListView.builder(
+      return ListView.builder(
         itemCount: 1,
         itemBuilder: (context,int index){
           return Padding(
@@ -309,33 +241,38 @@ class _HomePageState extends State<HomePage> {
         },
       );
     }
-    
-    return RefreshIndicator(
-      onRefresh: _refreshNotes,
-      child: w,
-    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text("Notes"),
-        actions: <Widget>[
-          IconButton(
-            icon: Icon(
-              Icons.add,
-              size: 30,
-              color: defaultIconColor,
+      body: NestedScrollView(
+        scrollDirection: Axis.vertical,
+        headerSliverBuilder: (context, isTrue){
+          return [
+            SliverAppBar(
+              expandedHeight: 100,
+              floating: true,
+              pinned: true,
+              actions: <Widget>[
+                IconButton(
+                  icon: Icon(Icons.add),
+                  iconSize: 30.0,
+                  padding: EdgeInsets.only(right: 10),
+                  onPressed: (){
+                    _navigateToCreateNote(context);
+                  },
+                )
+              ],
+              flexibleSpace: FlexibleSpaceBar(
+                title: Text("Notes"),
+                titlePadding: EdgeInsets.only(left: 20,bottom: 20),
+              ),
             ),
-            padding: EdgeInsets.only(right: 10),
-            onPressed: (){
-              _navigateToCreateNote(context);
-            },
-          )
-        ],
+          ];
+        },
+        body: _notesData(context),
       ),
-      body: _notesData(context),
     );
   }
 }
